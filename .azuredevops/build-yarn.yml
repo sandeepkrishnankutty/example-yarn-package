@@ -1,0 +1,49 @@
+name: b.$(date:yyyyMMdd)$(rev:.r)
+
+trigger:
+  branches:
+    include:
+    - refs/heads/master
+  batch: True
+
+pool:
+  name: Hosted Windows 2019 with VS2019
+
+stages:
+  - stage: build
+    displayName: Build
+    jobs:
+    - job: build
+      displayName: Build and package
+      cancelTimeoutInMinutes: 1
+
+
+      steps:
+
+      - task: NodeTool@0
+        displayName: Use Node 12.13.x
+        inputs:
+          versionSpec: 12.13.x
+          checkLatest: true
+
+      - task: YarnInstaller@2
+        displayName: Use Yarn 1.22.x
+        inputs:
+          versionSpec: 1.22.x
+
+      - task: CmdLine@2
+        displayName: Use Lerna
+        inputs:
+          script: npm install lerna -g
+
+      - task: Yarn@2
+        displayName: Yarn install
+        inputs:
+          ProjectDirectory: source
+          Arguments: install
+
+      - task: Yarn@2
+        displayName: Yarn build
+        inputs:
+          ProjectDirectory: source
+          Arguments: build:sponline:$(BuildConfiguration)
